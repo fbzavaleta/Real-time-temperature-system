@@ -15,6 +15,7 @@
  * Drivers
  */
 #include "driver/gpio.h"
+#include "driver/ledc.h"
 #include "wifi.h"
 #include "nvs_flash.h"
 #include "esp_random.h"
@@ -31,6 +32,10 @@ static const char * TAG = "MAIN-NAV: ";
 void http_Socket ( void * pvParameter );
 void http_SendReceive ( void * pvParameter );
 #define DEGUG 1
+#define pwm_pin 18
+
+#define buzzer_off 0
+#define buzzer_on  230
 
 typedef struct xData {
  	int sock; 
@@ -138,6 +143,53 @@ void http_SendReceive(void * pvParameter)
 	vTaskDelete(NULL); 	
 }
 
+//configuração do PWM
+
+void pwm_config()
+{
+	//configuração do timer
+	ledc_timer_config_t ledc_timer ={
+		.speed_mode = LEDC_HIGH_SPEED_MODE,
+		.timer_num  = LEDC_TIMER_0,
+		.duty_resolution = LEDC_TIMER_8_BIT, // min =0 / max = 2^8 -1
+		.freq_hz = 50, //t = 1/50
+		.clk_cfg = LEDC_AUTO_CLK
+	};
+	ledc_timer_config(&ledc_timer);
+
+	//configuração do channel
+	ledc_channel_config_t ledc_channel = {
+		.speed_mode = LEDC_HIGH_SPEED_MODE,
+		.channel =    LEDC_CHANNEL_0,
+		.timer_sel = LEDC_TIMER_0,
+		.intr_type = LEDC_INTR_DISABLE,
+		.gpio_num = pwm_pin,
+		.duty = 0,
+		.hpoint = 0
+	};
+	ledc_channel_config(&ledc_channel);
+}
+
+//função do dutty
+void send_pwm()
+{
+	for (;;)
+	{
+		//enviando sinal buzzer ->on
+		ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, buzzer_on);
+		ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
+		vTaskDelay(100/portTICK_PERIOD_MS);
+		ledc_stop(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0,0);
+
+		//enviando sinal buzzer ->off
+		ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, buzzer_off);
+		ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
+		vTaskDelay(100/portTICK_PERIOD_MS);
+		ledc_stop(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0,0);		
+	}
+	
+}
+
 void app_main(void)
 {
 	esp_err_t ret = nvs_flash_init();
@@ -149,11 +201,22 @@ void app_main(void)
 	ESP_ERROR_CHECK(ret);
 
 	wifi_config();
+	pwm_config();
 
     if( ( xTaskCreate( http_Socket, "http_Socket", 2048, NULL, 5, NULL )) != pdTRUE )
 	{
 		ESP_LOGI( TAG, "error - nao foi possivel alocar http_Socket.\n" );	
 		return;		
-	}          
+	}   
+
+    if( ( xTaskCreate( send_pwm, "send_pwm", 2048, NULL, 5, NULL )) != pdTRUE )
+	{
+		ESP_LOGI( TAG, "error - nao foi possivel alocar send_pwm.\n" );	
+		return;		
+	}   
+
+
+
+
 
 }
