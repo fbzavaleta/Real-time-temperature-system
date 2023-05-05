@@ -19,6 +19,24 @@
 #include "wifi.h"
 #include "nvs_flash.h"
 #include "esp_random.h"
+#include <dht.h>
+/*
+
+Actividade - due 11/05
+
+Modificar o código para o envio das variaveis de temperatura e humedidade para o envio do
+thinkspeaks.
+*/
+
+#if defined(CONFIG_EXAMPLE_TYPE_DHT11)
+#define SENSOR_TYPE DHT_TYPE_DHT11
+#endif
+#if defined(CONFIG_EXAMPLE_TYPE_AM2301)
+#define SENSOR_TYPE DHT_TYPE_AM2301
+#endif
+#if defined(CONFIG_EXAMPLE_TYPE_SI7021)
+#define SENSOR_TYPE DHT_TYPE_SI7021
+#endif
 
 
 /*
@@ -103,7 +121,7 @@ void http_SendReceive(void * pvParameter)
 	sprintf(post_string, msg_post, apikey);
 
 	char databody[50];
-  	sprintf( databody, "{%s&field1=%d}", API_WRITE_KEY, xSocket->val_teste);
+  	sprintf( databody, "{%s&field1=%d}", API_WRITE_KEY, xSocket->val_teste); //modificar a estructure xdata
 	sprintf( buffer , "%s%d\r\n\r\n%s\r\n\r\n", post_string, strlen(databody), databody);
   
 	int rc = send( xSocket->sock, buffer, strlen(buffer), 0 );
@@ -190,6 +208,28 @@ void send_pwm()
 	
 }
 
+void dht_test(void *pvParameters)
+{
+    float temperature, humidity;
+
+#ifdef CONFIG_EXAMPLE_INTERNAL_PULLUP
+    gpio_set_pull_mode(dht_gpio, GPIO_PULLUP_ONLY);
+#endif
+
+    while (1)
+    {
+        if (dht_read_float_data(SENSOR_TYPE, CONFIG_EXAMPLE_DATA_GPIO, &humidity, &temperature) == ESP_OK)
+            printf("Humidity: %.1f%% Temp: %.1fC\n", humidity, temperature);
+        else
+            printf("Could not read data from sensor\n");
+
+        // If you read the sensor data too often, it will heat up
+        // http://www.kandrsmith.org/RJS/Misc/Hygrometers/dht_sht_how_fast.html
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
+}
+
+
 void app_main(void)
 {
 	esp_err_t ret = nvs_flash_init();
@@ -203,6 +243,7 @@ void app_main(void)
 	wifi_config();
 	pwm_config();
 
+	
     if( ( xTaskCreate( http_Socket, "http_Socket", 2048, NULL, 5, NULL )) != pdTRUE )
 	{
 		ESP_LOGI( TAG, "error - nao foi possivel alocar http_Socket.\n" );	
@@ -213,10 +254,12 @@ void app_main(void)
 	{
 		ESP_LOGI( TAG, "error - nao foi possivel alocar send_pwm.\n" );	
 		return;		
-	}   
-
-
-
-
+	}  
+	
+    if( ( xTaskCreate( dht_test, "dht_test", 2048, NULL, 5, NULL )) != pdTRUE )
+	{
+		ESP_LOGI( TAG, "error - nao foi possivel alocar dht_test.\n" );	
+		return;		
+	}  	 
 
 }
