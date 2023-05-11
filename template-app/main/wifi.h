@@ -12,13 +12,13 @@ API
 */
 #define SERVER_IP "184.106.153.149" 
 #define SERVER_PORT 80 
-#define API_WRITE_KEY "4YQSYIDJPSCMDZDM"
+#define API_WRITE_KEY "3LJE2V1DUPE3DLYZ"
 
 /*
 wifi credencials
 */
-#define EXAMPLE_ESP_WIFI_SSID 	"francis5G" 
-#define EXAMPLE_ESP_WIFI_PASS 	"12345678" 
+#define EXAMPLE_ESP_WIFI_SSID 	"NEMO" 
+#define EXAMPLE_ESP_WIFI_PASS 	"nemo1407" 
 
 /*
 Function avaliable from this module
