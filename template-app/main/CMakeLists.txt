@@ -1,2 +1,9 @@
-idf_component_register(SRCS "wifi.c" "main.c"
-                    INCLUDE_DIRS ".")
+idf_component_register(
+    SRCS 
+        "modules/buzzer.c" 
+        "modules/led.c" 
+        "modules/network.c" 
+        "main.c"
+    INCLUDE_DIRS 
+        "."
+)
