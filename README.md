@@ -3,7 +3,7 @@ Welcome to the ESP32 Temperature Control System repository! This project focuses
 
 We have the follow levels of control : Normal state when the variation is betwwen +-2 Cº, Warning state when the variation is up +- 2 Cº in at least 10 consequtive meditions and critical when the variation is up +-5 Cº in the least 15 consecutive meditions.
 
-This project was developed  with my computer engineering students at the [FIAP](https://www.fiap.com.br/) university - São Paulo, Brasil. The main contributors were: @ThalitaTome  and @victorvuelma .
+This project was developed  with my computer engineering students at the [FIAP](https://www.fiap.com.br/) university - São Paulo, Brasil. The main contributors were: [@ThalitaTome](https://github.com/ThalitaTome)  and [@victorvuelma](https://github.com/victorvuelma) .
 
 - [Setup](#setup)
 - [Development](#development)
