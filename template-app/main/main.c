@@ -78,6 +78,9 @@ typedef struct temperatureVariation
 // Temperatura inicial do componente, é feita uma leitura na inicialização
 float initialTemperature;
 
+//Definições de status de variação
+#define NORMAL_VARIATION
+
 // TASK - Responsável por enviar um heartbeat (1) para a fila a cada 100ms
 void heartbeat_send(void *pvParameter)
 {
